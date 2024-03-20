@@ -11,6 +11,12 @@ int s21_create_matrix(int rows, int columns, matrix_t *result) {
   } else {
     for (int i = 0; i < rows; i++) {
       result->matrix[i] = calloc(columns, sizeof(double));
+      if(!result->matrix[i]){
+          for (int j = i - 1; j >= 0; --j){
+            free(result->matrix[i]);
+          }
+          free(result->matrix);
+      }
     }
   }
   return flag_error;
@@ -135,12 +141,11 @@ int s21_determinant(matrix_t *A, double *result) {
     double det__ = 0;
     int sign = 1;
     for (int i = 0; i < A->rows; i++) {
-      if(s21_create_matrix(A->rows - 1, A->columns - 1, &temp)) return INCORRECT_MATRIX;
+      s21_create_matrix(A->rows - 1, A->columns - 1, &temp);
       s21_get_minor(A, &temp, i, 0);
       double res;
       s21_determinant(&temp, &res);
       det__ += sign * A->matrix[i][0] * res;
-      ;
       sign *= -1;
       s21_remove_matrix(&temp);
     };
@@ -156,10 +161,10 @@ int s21_calc_complements(matrix_t *A, matrix_t *result) {
   for (int i = 0; i < A->rows; i++) {
     for (int j = 0; j < A->columns; j++) {
       matrix_t temp;
-      if(s21_create_matrix(A->rows - 1, A->columns - 1, &temp)) return INCORRECT_MATRIX;
+      s21_create_matrix(A->rows - 1, A->columns - 1, &temp);
       s21_get_minor(A, &temp, i, j);
       double det_temp;
-      if(s21_determinant(&temp, &det_temp)) return INCORRECT_MATRIX;
+      s21_determinant(&temp, &det_temp);
       result->matrix[i][j] = pow(-1, i + j) * det_temp;
       s21_remove_matrix(&temp);
     }
